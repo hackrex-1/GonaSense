@@ -9,10 +9,11 @@ review.
 
 Built for the **NASA Space Apps Challenge 2026 (Field Shift)**.
 
-> **Status: Phase 0 complete.** The repository, data contracts, POWER fetcher
-> and front-end shell are in place. `web/data/metrics.json` is currently
-> synthetic mock data with the final shape, so the front end can be built in
-> parallel with the metrics pipeline. Do not read its numbers as findings yet.
+> **Status: Phase 2 complete.** The repository, frozen data contracts, POWER
+> fetcher, metrics core (onset, crop windows, 12 scenarios) and validator all
+> work. `web/data/metrics.json` now contains real computed counts for all 11
+> LGAs. NDVI/bare-field data is still pending (Phase 5), so `bare_share` is
+> `null` and the page says so. Charts, map, cards and sliders are next.
 
 ## Problem
 
@@ -54,19 +55,24 @@ gombe-rotation-advisor/
 ## Quick start
 
 ```powershell
-# 1. Python dependencies
-pip install -r requirements.txt
+# 1. Python dependencies (pandas, requests, pytest)
+python -m venv .venv --system-site-packages
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
 
 # 2. Download POWER data for one LGA (all LGAs if you omit --locations)
 python pipeline/fetch_power.py --locations gombe
 
-# 3. Check the exported JSON contracts
+# 3. Compute metrics and export the contracts (about 2 minutes for 11 LGAs)
+python pipeline/export_json.py
+
+# 4. Check the exported JSON contracts
 python pipeline/validate.py
 
-# 4. JavaScript scoring tests
+# 5. Tests: pipeline (pytest) and scoring (node)
+.\.venv\Scripts\python.exe -m pytest -q
 npm test
 
-# 5. Open the site (a local server is needed for ES modules)
+# 6. Open the site (a local server is needed for ES modules)
 python -m http.server 8080 --directory web
 # then visit http://localhost:8080
 ```
@@ -75,8 +81,9 @@ python -m http.server 8080 --directory web
 pausing between calls, and caches each response in `raw/power_<id>.csv`.
 Later runs reuse the cache; pass `--force` to refresh.
 
-Phase 2 commands (`python pipeline/metrics.py`, `python pipeline/export_json.py`)
-are stubs until the metrics core lands.
+`export_json.py` reads the cached CSVs, computes onset and crop counts for the
+base case and all 12 scenarios, writes `web/data/metrics.json` and
+`locations.json`, then runs the contract validator as its last step.
 
 ## Data sources
 
@@ -108,10 +115,16 @@ Onset, crop windows, counts and the scoring formula are written up in
 
 - NASA POWER is a modelled product, not a weather station. Every location is
   labelled "Medium (single source)" until IMERG is added.
+- POWER's grid is coarser than an LGA, so some neighbouring LGAs share an
+  identical modelled series (for example Akko, Billiri and Kaltungo). Treat
+  within-LGA variation as unresolved; this is stated in the limits panel.
 - One centroid represents a whole LGA; soil, slope and variety vary within it.
+- NDVI is not wired in yet, so the bare-field share is `null` and scoring
+  uses the neutral 0.3 default with a visible note.
 - Crop thresholds marked `"verify"` are literature-based estimates awaiting
   local expert review. The page must show that tag.
-- Scenarios are sensitivity tests, not forecasts.
+- Scenario pass rates can move slightly in either direction when scaled rain
+  shifts the detected onset. The ranges are a sensitivity test, not a forecast.
 - This is a decision aid. Farmers' experience and extension officers' advice
   come first.
 

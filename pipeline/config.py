@@ -62,6 +62,8 @@ ONSET = dict(
 )
 
 DRY_DAY_MM = 1.0
+ONSET_MAX_MISSING_SHARE = 0.05    # skip a year if more of the search window is missing
+WINDOW_MAX_MISSING_SHARE = 0.05   # reject a crop season above this missing share
 
 # --------------------------------------------------------------------------
 # Scenario grid (sensitivity test, not a forecast)

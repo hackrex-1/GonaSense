@@ -18,6 +18,11 @@ fetcher changes product or date range.
 - Notes: modelled reanalysis, not ground observations. Root-zone wetness
   (`GWETROOT`) is a model estimate and is described as such in the limits
   panel.
+- Resolution caveat: the POWER grid is coarser than a Gombe LGA, so several
+  neighbouring LGAs receive identical series. Akko, Billiri and Kaltungo
+  match exactly; Gombe and Kwami match; Funakaye and Nafada match. This is
+  documented in the page's limits panel and must not be presented as
+  field-level variation.
 
 ### geoBoundaries - Nigeria ADM2 (LGA boundaries)
 

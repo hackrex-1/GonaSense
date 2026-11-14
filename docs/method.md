@@ -77,7 +77,20 @@ sliders (1-5). All-zero weights return 0, never NaN.
 Top-strategy colour thresholds: green at >= 0.65, amber 0.45-0.65, red below
 0.45. Always pair colour with a text label and icon.
 
-## 7. Confidence
+## 7. Hand check (Gombe, 2001)
+
+`python pipeline/metrics.py` reports onset day 149 (29 May 2001). Reading the
+daily rain by eye agrees: the 3-day window 29-31 May totals 20.3 mm, and no
+7-day dry run follows within the next 30 days. The next candidate window
+(30 May - 1 June) also totals over 20 mm, so the choice is stable within one
+day.
+
+Dukku 2023 is the only no-onset season in the current record. Every 20 mm+
+3-day window that year (6 June, 6-9 August, 24 August) is followed by 7 to 10
+dry days, so the false-start guard rejects all of them. The season is low
+(April-October rain 432 mm) and is counted as a failure for every crop.
+
+## 8. Confidence
 
 If IMERG is available, correlate POWER and IMERG seasonal rainfall totals
 across years:

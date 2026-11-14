@@ -48,7 +48,7 @@ export function renderFacts(location, metrics, crops, strategies) {
   const bare =
     typeof metrics.bare_share === "number"
       ? `${Math.round(metrics.bare_share * 100)}% of dekads`
-      : "Not available (single source)";
+      : "Not available yet (NDVI add-on pending)";
 
   const rows = [
     ["LGA", location.name],
