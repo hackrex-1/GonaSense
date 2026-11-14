@@ -1,0 +1,20 @@
+# Downloaded data (re-download with `python pipeline/fetch_power.py`)
+raw/*
+!raw/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Node
+node_modules/
+package-lock.json
+
+# OS and editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

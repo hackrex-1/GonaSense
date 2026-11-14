@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Offline decision aid for rain-fed crop rotations in Gombe State, Nigeria.">
+  <title>Gombe Rotation Advisor</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <div>
+        <p class="eyebrow">NASA Space Apps Challenge 2026 &middot; Field Shift</p>
+        <h1>Gombe Rotation Advisor</h1>
+        <p class="lede">
+          Compare a farmer's current rotation with climate-tested alternatives
+          using 24 seasons of satellite rainfall, temperature and soil data.
+        </p>
+      </div>
+      <p class="badge" id="data-badge" role="status">Loading data&hellip;</p>
+    </div>
+  </header>
+
+  <main id="main" class="wrap">
+    <section class="panel controls" aria-labelledby="controls-title">
+      <h2 id="controls-title">Your farm</h2>
+      <div class="field">
+        <label for="location-select">Local government area</label>
+        <select id="location-select" disabled>
+          <option>Loading locations&hellip;</option>
+        </select>
+        <p class="hint" id="location-hint">Choose the LGA closest to the farm.</p>
+      </div>
+      <p class="phase-note" id="phase-note">
+        Rotation builder and priority sliders arrive in Phase 3.
+      </p>
+    </section>
+
+    <section class="panel" aria-labelledby="facts-title">
+      <h2 id="facts-title">What the data says</h2>
+      <dl class="facts" id="location-facts">
+        <div><dt>Status</dt><dd>Loading&hellip;</dd></div>
+      </dl>
+    </section>
+
+    <section class="panel strategies" aria-labelledby="cards-title">
+      <h2 id="cards-title">Strategies</h2>
+      <p class="hint" id="cards-placeholder">
+        Strategy cards, charts and the LGA map arrive in later phases.
+      </p>
+      <div class="cards" id="cards"></div>
+    </section>
+
+    <section class="panel limits" aria-labelledby="limits-title">
+      <h2 id="limits-title">Data and limits</h2>
+      <ul>
+        <li>Rainfall, temperature and root-zone wetness come from NASA POWER daily estimates, not ground stations.</li>
+        <li>Each location is represented by one LGA centroid, not a farmer's field.</li>
+        <li>Scenarios are a sensitivity test, not a forecast.</li>
+        <li>Crop thresholds marked "unverified estimate" still need local expert review.</li>
+        <li>This is a decision aid. Your experience and your extension officer's advice come first.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>Built for the NASA Space Apps Challenge. Data: NASA POWER, geoBoundaries/GRID3.</p>
+    </div>
+  </footer>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

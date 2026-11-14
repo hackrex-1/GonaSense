@@ -1,0 +1,8 @@
+pandas>=2.2
+numpy>=1.26
+requests>=2.32
+pytest>=8.2
+
+# Phase 5 (optional satellite add-ons)
+# earthaccess>=0.12
+# geopandas>=1.0

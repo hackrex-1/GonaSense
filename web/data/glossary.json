@@ -1,0 +1,10 @@
+[
+  { "term": "NDVI", "plain": "A satellite measure of how green and dense the vegetation is. Low values suggest bare soil." },
+  { "term": "Dry spell", "plain": "A run of days with almost no rain. Long dry spells during flowering can cut yield." },
+  { "term": "Soil moisture", "plain": "How much water is held in the root zone. NASA POWER estimates this from satellite and weather models." },
+  { "term": "Rainfall onset", "plain": "The first reliable start of the rainy season: enough rain to wet the soil, with no long dry spell straight after." },
+  { "term": "Dekad", "plain": "A ten-day period: days 1 to 10, 11 to 20, or 21 to the end of the month. There are 36 in a year." },
+  { "term": "Reliability", "plain": "The share of seasons in which rainfall, dry spells and heat all stayed within a crop's limits." },
+  { "term": "Sensitivity test", "plain": "A what-if run with less rain or more heat. It shows how rankings react; it is not a forecast." },
+  { "term": "Confidence label", "plain": "How much we trust a location's numbers. A single data source is labelled Medium until a second satellite source agrees." }
+]

@@ -1,0 +1,65 @@
+[
+  {
+    "id": "B",
+    "name": "Cereal then legume",
+    "sequence": ["maize", "cowpea"],
+    "benefits": [
+      "Cowpea fixes nitrogen for the next cereal",
+      "Breaks the continuous-cereal pest cycle",
+      "Spreads labour and harvest risk across the season"
+    ],
+    "gaps": [
+      "Soil type and field slope",
+      "Local cowpea market price at harvest",
+      "Suitable cowpea variety and maturity date",
+      "Seed access and cost"
+    ],
+    "risks": [
+      "Check pest pressure on cowpea (thrips, pod borer)",
+      "Confirm seed access before the season starts",
+      "Verify the local market before planting"
+    ]
+  },
+  {
+    "id": "C",
+    "name": "Drought-tolerant mix",
+    "sequence": ["sorghum", "cowpea", "millet"],
+    "benefits": [
+      "Better tolerance of dry spells at the season edges",
+      "Cowpea adds nitrogen between two cereals",
+      "Three crops spread risk across rainfall variability"
+    ],
+    "gaps": [
+      "Local sorghum and millet prices",
+      "Striga history in the field",
+      "Variety maturity dates for the LGA",
+      "Labour for a three-crop sequence"
+    ],
+    "risks": [
+      "Striga can build up under continuous sorghum",
+      "Late-season heat during flowering",
+      "Bird damage on millet near settlements"
+    ]
+  },
+  {
+    "id": "D",
+    "name": "Legume-led rotation",
+    "sequence": ["groundnut", "millet", "cowpea"],
+    "benefits": [
+      "Two legumes rebuild soil nitrogen",
+      "Ground cover reduces erosion on sloped fields",
+      "Diversified income from grain and legume sales"
+    ],
+    "gaps": [
+      "Aflatoxin risk and drying practice",
+      "Soil calcium and pH for groundnut",
+      "Labour for groundnut harvesting",
+      "Market access for legumes"
+    ],
+    "risks": [
+      "Aflatoxin if groundnuts dry poorly",
+      "Groundnut rosette virus pressure",
+      "Confirm buyers before planting"
+    ]
+  }
+]
