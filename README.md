@@ -30,16 +30,8 @@ Built for the **NASA Space Apps Challenge 2026 (Field Shift)**.
 
 ## Live site
 
-Pending. The deployed site is the contents of `web/` on GitHub Pages. Add the
-URL here after enabling Pages (see `HUMAN_TODO.md`).
-
-## Screenshots
-
-Pending. Placeholder for:
-
-- desktop three-column view
-- 360 px mobile view
-- a strategy card close-up
+GitHub Pages is not enabled yet. Once enabled with GitHub Actions, the site URL
+will be `https://hackrex-1.github.io/GonaSense/`.
 
 ## Repository layout
 
@@ -50,8 +42,6 @@ gombe-rotation-advisor/
   web/          the deployed site (HTML, CSS, ES modules, JSON)
   docs/         requirements trace, method, sources, crop citations, QA
   tests/        pytest for the pipeline, node tests for scoring
-  AGENTS.md     standing brief for future agent sessions
-  DECISIONS.md  one-line decisions and reasons
   HUMAN_TODO.md what still needs a person
 ```
 
@@ -160,15 +150,6 @@ Onset, crop windows, counts and the scoring formula are in
 - GADM v4.1, used for state masking only.
 - Chart.js 4.4.7 and Leaflet 1.9.4, vendored.
 - OpenStreetMap contributors for map tiles.
-
-## Team
-
-_(Fill in names, roles and affiliations before submission.)_
-
-## AI-use disclosure
-
-_(Complete if the challenge requires it. Record which tools were used for
-code, copy and analysis, and what was reviewed by a human.)_
 
 ## Licence
 

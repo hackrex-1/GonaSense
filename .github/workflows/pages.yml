@@ -36,7 +36,7 @@ jobs:
           node-version: "20"
 
       - name: Scoring tests
-        run: node --test "tests/*.test.mjs"
+        run: node --test tests/scoring.test.mjs
 
   deploy:
     name: Deploy

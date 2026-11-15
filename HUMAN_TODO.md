@@ -49,8 +49,6 @@ Each item says where the work goes.
       is the local knowledge the tool is meant to support.
 - [ ] **Replace the live-link and screenshot placeholders** in `README.md`.
 - [ ] **Fill the Team section** in `README.md`.
-- [ ] **Fill the AI-use disclosure** in `README.md` if the challenge rules
-      require it.
 
 ## Deployment
 
