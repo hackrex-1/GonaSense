@@ -1,57 +1,52 @@
-/* Pure scoring functions. No DOM access, so this file runs under Node tests. */
+/* Pure scoring functions. No DOM access, so this file runs under Node tests.
 
-export function scenarioKey(rainMult, tempDelta) {
-  const signed = (value) => `${value >= 0 ? "+" : "-"}${Math.abs(value)}`;
-  const rainPct = Math.round((rainMult - 1) * 100);
-  return `rain${signed(rainPct)}_temp${signed(tempDelta)}`;
-}
+   Mirrors the formula in docs/method.md and the pipeline's scenario names. */
+
+import { strings } from "./strings.js";
 
 const frac = (counts, key) => counts[key] / counts.n_total;
 
-export function scoreStrategy(sequence, loc, scenario, crops, weights) {
-  if (!sequence.length) return { total: 0, parts: {} };
+export function scoreStrategy(seq, loc, scen, crops, w) {
+  if (!seq.length) return { total: 0, parts: {} };
 
-  const avg = (fn) =>
-    sequence.reduce((sum, cropId) => sum + fn(cropId), 0) / sequence.length;
-  const counts = (cropId) => loc.scenarios[scenario][cropId];
-  const bare = loc.bare_share ?? 0.3;
-
-  // Counts family changes around the cycle, including the wrap-around.
-  const changes = sequence.filter(
-    (cropId, index) =>
-      crops[cropId].family !== crops[sequence[(index + 1) % sequence.length]].family,
+  const avg = (fn) => seq.reduce((sum, crop) => sum + fn(crop), 0) / seq.length;
+  const m = (crop) => loc.scenarios[scen][crop];
+  const bare = loc.bare_share ?? 0.3; // mirror DEFAULT_BARE_SHARE
+  const changes = seq.filter(
+    (crop, index) => crops[crop].family !== crops[seq[(index + 1) % seq.length]].family,
   ).length;
 
   const parts = {
     climate: avg(
-      (cropId) =>
-        (frac(counts(cropId), "rain_ok") +
-          frac(counts(cropId), "dry_ok") +
-          frac(counts(cropId), "heat_ok")) /
-        3,
+      (crop) =>
+        (frac(m(crop), "rain_ok") + frac(m(crop), "dry_ok") + frac(m(crop), "heat_ok")) / 3,
     ),
-    water: avg((cropId) => 1 - crops[cropId].water),
-    soil: avg((cropId) => crops[cropId].n_fixing),
-    erosion: avg((cropId) => crops[cropId].cover) * (1 - bare),
-    pests: sequence.length > 1 ? changes / sequence.length : 0,
-    income: avg((cropId) => crops[cropId].market),
+    water: avg((crop) => 1 - crops[crop].water),
+    soil: avg((crop) => crops[crop].n_fixing),
+    erosion: avg((crop) => crops[crop].cover) * (1 - bare),
+    pests: seq.length > 1 ? changes / seq.length : 0,
+    income: avg((crop) => crops[crop].market),
   };
 
   let numerator = 0;
   let denominator = 0;
   for (const key in parts) {
-    numerator += weights[key] * parts[key];
-    denominator += weights[key];
+    numerator += w[key] * parts[key];
+    denominator += w[key];
   }
-
   return { total: denominator ? numerator / denominator : 0, parts };
 }
 
-export function rank(strategies, loc, scenario, crops, weights) {
+export function rank(strategies, loc, scen, crops, w) {
   return strategies
-    .map((strategy) => ({
-      strategy,
-      result: scoreStrategy(strategy.sequence, loc, scenario, crops, weights),
-    }))
-    .sort((a, b) => b.result.total - a.result.total);
+    .map((s) => ({ s, r: scoreStrategy(s.sequence, loc, scen, crops, w) }))
+    .sort((a, b) => b.r.total - a.r.total);
+}
+
+export const scenarioKey = (rainMult, tempDelta) =>
+  `rain${Math.round((rainMult - 1) * 100) >= 0 ? "+" : ""}${Math.round((rainMult - 1) * 100)}_temp${tempDelta >= 0 ? "+" : ""}${tempDelta}`;
+
+export function trafficLight(total) {
+  const key = total >= 0.65 ? "strong" : total >= 0.45 ? "mixed" : "weak";
+  return { key, label: strings.traffic[key].label, icon: strings.traffic[key].icon };
 }

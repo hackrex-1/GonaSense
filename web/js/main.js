@@ -1,61 +1,138 @@
-/* Entry point: load data once, wire the location control, then update. */
+/* Entry point. Load data once, build controls, then update every view from
+   in-memory state. No network request happens after init(). */
 
-import { loadData } from "./data.js";
+import { loadData, strategyList } from "./data.js";
 import { state, setState, onUpdate } from "./state.js";
+import { rank, scenarioKey } from "./scoring.js";
 import {
-  renderLocationPicker,
-  renderFacts,
-  setBadge,
+  applyStaticCopy,
+  buildControls,
+  renderCards,
+  renderGlossary,
+  renderLimits,
+  renderScenarioError,
+  setDataBadge,
   showFatalError,
+  syncControls,
+  syncDemoBanner,
 } from "./ui.js";
+import { drawCharts } from "./charts.js";
+import { drawMap } from "./map.js";
 
 let DATA = null;
+let wired = false;
 
-function update() {
-  if (!DATA) return;
-  const location = DATA.locations.find((entry) => entry.id === state.location);
-  if (!location) return;
-  const metrics = DATA.metrics[location.id];
-  renderFacts(location, metrics, DATA.crops, DATA.strategies);
-  document.title = `${location.name} · Gombe Rotation Advisor`;
+function handlers() {
+  return {
+    onLocation: (id) => setState({ location: id }),
+    onRotationSlot: (index, cropId) => {
+      const existing = [...state.existing];
+      existing[index] = cropId;
+      setState({ existing });
+    },
+    onAddYear: () => {
+      if (state.existing.length >= 3) return;
+      setState({ existing: [...state.existing, "cowpea"] });
+    },
+    onRemoveYear: (index) => {
+      if (state.existing.length <= 2) return;
+      setState({ existing: state.existing.filter((_, item) => item !== index) });
+    },
+    onWeight: (key, value) => setState({ weights: { ...state.weights, [key]: value } }),
+    onRain: (value) => setState({ rain: value }),
+    onTemp: (value) => setState({ temp: value }),
+  };
 }
 
-function syncHash() {
-  if (window.location.hash.slice(1) !== state.location) {
-    history.replaceState(null, "", `#${state.location}`);
+function validLocation(id) {
+  return Boolean(DATA?.locations?.some((entry) => entry.id === id));
+}
+
+function readHash() {
+  const id = window.location.hash.replace(/^#/, "");
+  return validLocation(id) ? id : null;
+}
+
+function normaliseState() {
+  if (!validLocation(state.location)) {
+    state.location = DATA.locations[0]?.id || "gombe";
+  }
+  const crops = Object.keys(DATA.crops || {});
+  state.existing = state.existing
+    .filter((cropId) => crops.includes(cropId))
+    .slice(0, 3);
+  while (state.existing.length < 2 && crops.length) {
+    state.existing.push(crops[0]);
   }
 }
 
-function readHash(locations) {
-  const fromHash = window.location.hash.slice(1);
-  return locations.some((entry) => entry.id === fromHash) ? fromHash : null;
+export function update() {
+  if (!DATA) return;
+  normaliseState();
+
+  const location = DATA.locations.find((entry) => entry.id === state.location)
+    || DATA.locations[0];
+  const metrics = DATA.metrics?.locations?.[location.id];
+
+  syncControls(DATA, state);
+
+  if (!metrics) {
+    showFatalError(new Error(`No metrics for ${location.name}.`), () => window.location.reload());
+    return;
+  }
+
+  const key = scenarioKey(state.rain, state.temp);
+  const counts = metrics.scenarios?.[key];
+  if (!counts) {
+    renderScenarioError(key);
+    return;
+  }
+
+  const strategies = strategyList(state.existing, DATA.strategies);
+  const ranked = rank(strategies, metrics, key, DATA.crops, state.weights);
+
+  drawMap(DATA, state, key, state.weights, (id) => setState({ location: id }));
+  drawCharts(location, metrics, DATA.metrics);
+  renderCards(ranked, DATA, location, counts, (metrics.no_onset_years || []).length);
+  renderLimits(DATA.metrics, location, metrics);
+
+  document.title = `${location.name} · GonaSense`;
 }
 
 async function init() {
-  DATA = await loadData();
-  const fromHash = readHash(DATA.locations);
-  if (fromHash) state.location = fromHash;
-
-  if (!DATA.metrics[state.location]) {
-    state.location = DATA.locations[0].id;
+  applyStaticCopy();
+  try {
+    DATA = await loadData();
+  } catch (error) {
+    showFatalError(error, () => window.location.reload());
+    return;
   }
 
-  setBadge(`${DATA.locations.length} LGAs loaded · ${DATA.strategies.length} strategies`);
-  renderLocationPicker(DATA.locations, state.location, (id) => setState({ location: id }));
+  const fromHash = readHash();
+  if (fromHash) state.location = fromHash;
+  normaliseState();
 
-  onUpdate(() => {
-    syncHash();
-    update();
-  });
+  syncDemoBanner(DATA.metrics);
+  const scenarios = DATA.metrics?.locations?.[state.location]?.scenarios || {};
+  const scenarioCount = Object.keys(scenarios).filter((key) => key !== "base").length;
+  setDataBadge(DATA.metrics, DATA.locations.length, scenarioCount);
+  renderGlossary(DATA.glossary);
 
-  window.addEventListener("hashchange", () => {
-    const id = readHash(DATA.locations);
-    if (id && id !== state.location) setState({ location: id });
-  });
+  buildControls(DATA, state, handlers());
 
-  syncHash();
-  setBadge("Data loaded · offline-ready", "ok");
+  if (!wired) {
+    onUpdate(update);
+    window.addEventListener("hashchange", () => {
+      const id = readHash();
+      if (id && id !== state.location) setState({ location: id });
+    });
+    wired = true;
+  }
+
+  if (window.location.hash !== `#${state.location}`) {
+    history.replaceState(null, "", `#${state.location}`);
+  }
   update();
 }
 
-init().catch(showFatalError);
+init();

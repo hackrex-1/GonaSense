@@ -1,5 +1,5 @@
-/* Single source of truth for the page. setState() notifies the listener
-   registered by main.js, which runs update(). */
+/* In-memory state. No localStorage, no sessionStorage, no IndexedDB.
+   The URL hash carries only the selected location id. */
 
 export const state = {
   location: "gombe",
@@ -18,5 +18,9 @@ export function onUpdate(listener) {
 
 export function setState(patch) {
   Object.assign(state, patch);
+  const hash = `#${state.location}`;
+  if (window.location.hash !== hash) {
+    history.replaceState(null, "", hash);
+  }
   for (const listener of listeners) listener(state);
 }
