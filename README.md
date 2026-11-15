@@ -143,6 +143,13 @@ Onset, crop windows, counts and the scoring formula are in
 - Checking onset dates against NiMet bulletins and farmer recollection.
 - Advising on security and access conditions in parts of the north-east.
 
+## AI assistance
+
+AI tools assisted with writing and revising code and documentation. They did
+not verify the crop thresholds or local recommendations; provisional values
+are identified in the dashboard and require review against sources and local
+agricultural expertise.
+
 ## Credits
 
 - NASA POWER (NASA Langley Research Center), accessed 2026-11-14.
