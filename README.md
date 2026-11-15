@@ -30,8 +30,7 @@ Built for the **NASA Space Apps Challenge 2026 (Field Shift)**.
 
 ## Live site
 
-GitHub Pages is not enabled yet. Once enabled with GitHub Actions, the site URL
-will be `https://hackrex-1.github.io/GonaSense/`.
+Live dashboard: [https://hackrex-1.github.io/GonaSense/](https://hackrex-1.github.io/GonaSense/).
 
 ## Repository layout
 
