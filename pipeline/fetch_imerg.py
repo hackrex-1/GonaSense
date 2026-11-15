@@ -1,20 +1,138 @@
-"""Optional IMERG daily-rain fetcher for the satellite cross-check.
+"""Optional GPM IMERG daily precipitation fetcher and reader.
 
-PHASE 5 (optional). Fallback rule from the plan: if this is not working by
-hour 20, drop it, use POWER for rain, and say so in the limits panel.
-
-Planned output: ``raw/imerg_<id>.csv`` with columns ``date, rain_mm``.
-Requires an Earthdata login and ``earthaccess``.
+Requires ``earthaccess`` and Earthdata credentials (``EARTHDATA_USERNAME`` /
+``EARTHDATA_PASSWORD`` or ``~/.netrc``). Without them it prints a clear skip
+message and the pipeline falls back to "Medium (single source)" confidence.
+Importable and runnable with none of the optional packages installed.
 """
 
 from __future__ import annotations
 
+import os
+import sys
+from pathlib import Path
+
+import pandas as pd
+
+try:
+    from . import config, locations
+except ImportError:  # pragma: no cover - script mode
+    import config
+    import locations
+
+PRODUCT = "GPM_3IMERGDF"
+VERSION = "07"
+BOX_DEGREES = 0.25  # a small box around the LGA point
+
+
+def path_for(location_id: str, raw_dir: Path | None = None) -> Path:
+    return Path(raw_dir or config.RAW_DIR) / f"imerg_{location_id}.csv"
+
+
+def credentials_available() -> bool:
+    if os.environ.get("EARTHDATA_USERNAME") and os.environ.get("EARTHDATA_PASSWORD"):
+        return True
+    return (Path.home() / ".netrc").exists()
+
+
+def _import_earthaccess():
+    try:
+        import earthaccess  # noqa: F401
+        return earthaccess
+    except Exception:  # noqa: BLE001 - optional dependency
+        return None
+
+
+def download(entry: dict, refresh: bool = False) -> bool:
+    """Download IMERG daily rain for one LGA. False means skipped."""
+    target = path_for(entry["id"])
+    if target.exists() and not refresh:
+        print(f"    IMERG cached: {target.name}")
+        return True
+    if not credentials_available():
+        print("IMERG skipped: no credentials (set EARTHDATA_USERNAME and "
+              "EARTHDATA_PASSWORD or a ~/.netrc entry).")
+        return False
+    earthaccess = _import_earthaccess()
+    if earthaccess is None:
+        print("IMERG skipped: earthaccess is not installed "
+              "(pip install earthaccess xarray h5netcdf).")
+        return False
+    try:
+        import xarray as xr
+    except Exception:  # noqa: BLE001
+        print("IMERG skipped: xarray is not installed.")
+        return False
+
+    lat, lon = entry["lat"], entry["lon"]
+    half = BOX_DEGREES / 2
+    try:
+        earthaccess.login(strategy="environment", persist=False)
+        granules = earthaccess.search_data(
+            short_name=PRODUCT,
+            version=VERSION,
+            bounding_box=(lon - half, lat - half, lon + half, lat + half),
+            temporal=(f"{config.YEARS[0]}-01-01", f"{config.YEARS[1]}-12-31"),
+        )
+        if not granules:
+            print("IMERG skipped: the search returned no granules.")
+            return False
+        files = earthaccess.download(granules, str(config.RAW_DIR / "imerg"))
+        rows = []
+        for path in files:
+            with xr.open_dataset(path, decode_times=True) as dataset:
+                variable = next(
+                    (name for name in ("precipitation", "precipitationCal")
+                     if name in dataset.data_vars),
+                    None,
+                )
+                if variable is None:
+                    continue
+                subset = dataset[variable].sel(
+                    lat=slice(lat - half, lat + half),
+                    lon=slice(lon - half, lon + half),
+                )
+                value = float(subset.mean(skipna=True))
+                stamp = pd.Timestamp(dataset["time"].values[0]).normalize()
+                rows.append({"date": stamp, "rain_mm": round(value, 3)})
+        if not rows:
+            return False
+        frame = pd.DataFrame(rows).groupby("date", as_index=False)["rain_mm"].sum()
+        frame.to_csv(target, index=False)
+        print(f"    IMERG saved: {target.name} ({len(frame)} days)")
+        return True
+    except Exception as exc:  # noqa: BLE001 - optional source must not crash a run
+        print(f"IMERG skipped: download failed ({exc})", file=sys.stderr)
+        return False
+
+
+def load(location_id: str, raw_dir: Path | None = None) -> pd.DataFrame | None:
+    """Return ``date, rain_mm`` for the confidence cross-check, or None."""
+    path = path_for(location_id, raw_dir)
+    if not path.exists():
+        return None
+    try:
+        frame = pd.read_csv(path, comment="#")
+        frame.columns = [column.strip().lower() for column in frame.columns]
+        if "date" not in frame.columns or "rain_mm" not in frame.columns:
+            return None
+        frame["date"] = pd.to_datetime(frame["date"], errors="coerce")
+        frame["rain_mm"] = pd.to_numeric(frame["rain_mm"], errors="coerce")
+        frame = frame.dropna(subset=["date", "rain_mm"]).sort_values("date")
+        return frame.reset_index(drop=True) if not frame.empty else None
+    except Exception as exc:  # noqa: BLE001
+        print(f"  IMERG unreadable for {location_id}: {exc}", file=sys.stderr)
+        return None
+
 
 def main() -> int:
-    raise SystemExit(
-        "pipeline/fetch_imerg.py is optional and not implemented yet.\n"
-        "See implementation plan section 4.3 for the data source and fallback rule."
-    )
+    entries = locations.load_locations()
+    if not credentials_available():
+        print("IMERG skipped: no credentials. See HUMAN_TODO.md item 4.")
+        return 0
+    for entry in entries:
+        download(entry)
+    return 0
 
 
 if __name__ == "__main__":
