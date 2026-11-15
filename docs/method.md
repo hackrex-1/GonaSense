@@ -1,103 +1,129 @@
-# Method (draft)
+# Method
 
-This mirrors sections 4-7 of the implementation plan. Update it when the code
-changes, not afterwards.
+This file describes what the pipeline actually computes. It mirrors the code in
+`pipeline/`, not an aspiration. Thresholds marked provisional are listed in
+`HUMAN_TODO.md`.
 
-## 1. Harmonization
+## 1. Inputs and harmonization
+
+- **Weather:** NASA POWER daily point data for 2001-01-01 to 2024-12-31, 8,766
+  days per location, columns `T2M_MAX`, `T2M_MIN`, `PRECTOTCORR`, `GWETROOT`.
+  Missing values (`-999`) become NaN.
+- **Locations:** 11 Gombe State LGAs, one boundary-derived centroid each (see
+  `docs/sources.md`).
+- **NDVI (optional):** a user-supplied `raw/ndvi_<id>.csv` with `date,ndvi`.
+  No NDVI product is fetched automatically.
 
 Daily series are aggregated to 36 dekads per year: days 1-10, 11-20 and
 21-end of month. Rain is summed; temperature and root-zone wetness are
-averaged. NDVI (16-day) is linearly interpolated to daily, then averaged per
-dekad. Every derived series is keyed by `(location, year, dekad)`.
+averaged. NDVI, when present, is linearly interpolated from its 16-day
+samples to daily values and then averaged per dekad. Every derived series is
+keyed by `(location, year, dekad)` and written to `raw/harmonized_<id>.csv`.
 
 ## 2. Rainfall onset
 
-Search from 1 April to 31 October. Onset is the first day on which:
+The search runs from **1 April to 31 October**. Onset is the end date of the
+first 3-day window whose total is at least **20 mm**, provided that no run of
+**7 consecutive dry days** (each below 1 mm) occurs within the next **30
+days**. The dry-run guard rejects false starts.
 
-- the 3-day rainfall total is at least 20 mm, and
-- no run of 7 consecutive dry days (< 1 mm/day) follows within the next 30
-  days (a false-start guard).
+- If no window qualifies, the year is `no_onset`.
+- If more than **5%** of rain values in the search window are missing, the year
+  is `bad_data` and is excluded from `n_total`.
+- Onset is stored as a day-of-year integer. Because the returned date is the
+  end of the window, a 20 mm total on 29-31 May is stored as day 151.
 
-If nothing qualifies, onset is `None`. Those years are counted as failed
-seasons for every crop, never skipped; otherwise reliability is overstated.
-Years with more than 5% missing rain inside the search window are excluded
-from onset detection and counted as failures.
-
-Onset is stored as a day-of-year integer.
+`no_onset` years stay in `n_total` and count as failures for every crop. They
+are never silently dropped; dropping them would overstate reliability.
 
 ## 3. Per crop, per season
 
-Starting at onset, the crop window runs for `cycle_days`. Flowering is the
-fractional slice `flower_frac` of that cycle (for example 0.4 to 0.6).
+Starting at onset, the crop window covers `cycle_days` days, inclusive. The
+flowering window is the slice from `round(flower_frac[0] * cycle_days)` to
+`round(flower_frac[1] * cycle_days)` days after onset, inclusive.
 
-A season passes for a crop when:
+A season passes for a crop only when all three checks pass:
 
 | Check | Pass rule |
 | --- | --- |
 | Rain | season total >= `min_rain_mm` |
-| Dry spell | longest run < `DRY_DAY_MM` <= `dry_tolerance_days` days |
+| Dry spell | longest run of days below 1 mm <= `dry_tolerance_days` |
 | Heat | days with Tmax > `heat_threshold_c` during flowering <= `heat_days_limit` |
 
-Counts are aggregated over all years: `n_total`, `n_valid`, `rain_ok`,
-`dry_ok`, `heat_ok`, `all_ok`. Reliability is `all_ok / n_total`.
+The pipeline reports `rain_ok`, `dry_ok`, `heat_ok`, `all_ok` and `n_total`.
+Reliability is not reported as a single probability; the page shows counts such
+as "19 of 24 seasons".
 
-## 4. Scenarios
+## 4. Sensitivity scenarios
 
-The 12 cases are the product of rain multipliers (0.8, 0.9, 1.0, 1.1) and
+Twelve cases are the product of rain multipliers (0.8, 0.9, 1.0, 1.1) and
 temperature deltas (0, +1, +2 °C). Each case copies the daily frame, scales
-rain, adds the delta to Tmax and Tmin, and reruns onset and crop checks.
-Onset may shift under scaled rain; say so in the page.
+rain, adds the delta to Tmax and Tmin, recomputes onset and reruns the crop
+checks. Onset can move under scaled rain, so scenario results are sensitivity
+tests, not forecasts. The key format is `rain-10_temp+1`; the base key is
+`rain+0_temp+0`, with `"base"` stored as a string alias.
 
-## 5. Bare-field share
+## 5. Bare-field share and NDVI
 
-For each location, average NDVI per dekad across years. `bare_share` is the
-share of the 24 dekads from 1 April to 30 November whose mean NDVI is below
-`NDVI_BARE_THRESHOLD`. Store the 36 per-dekad means and 36 `bare_flags` for
-chart shading. If NDVI is missing, store `null` and let scoring use the
-neutral 0.3 default with a visible note.
+When NDVI is available, the pipeline averages NDVI per dekad across years.
+`bare_flags` marks the 36 dekads whose mean is below **0.25**. `bare_share` is
+the share of the 24 dekads from **1 April to 30 November** (dekads 10-33) that
+are flagged. The chart shades flagged dekads.
 
-## 6. Scoring
+When NDVI is unavailable, `ndvi_dekad` and `bare_flags` are `null`,
+`bare_share` is `null`, the chart says "Greenness data not loaded for this
+build", and scoring uses the documented **0.30** default. This is the case in
+the current real-data build.
+
+## 6. Scoring (front end)
 
 ```js
 climate = avg((rain_ok + dry_ok + heat_ok) / (3 * n_total))
 water   = avg(1 - crop.water)
 soil    = avg(crop.n_fixing)
-erosion = avg(crop.cover) * (1 - bare_share)
-pests   = family changes / sequence length   // wraps around the cycle
+erosion = avg(crop.cover) * (1 - bare_share)   // bare_share ?? 0.30
+pests   = family changes / sequence length      // wraps around the cycle
 income  = avg(crop.market)
 
 total = sum(weight[k] * part[k]) / sum(weight[k])
 ```
 
-The climate bar uses the average of the three pass rates. The evidence
-sentence uses the stricter `all_ok` count, because "all conditions held in
-the same season" is the honest claim. Weights come from the six priority
-sliders (1-5). All-zero weights return 0, never NaN.
+The climate bar uses the average of the three pass rates. The evidence sentence
+uses the stricter `all_ok` count because "all conditions held in the same
+season" is the honest claim. Weights come from the six priority sliders (1-5).
+All-zero weights return 0, never NaN.
 
-Top-strategy colour thresholds: green at >= 0.65, amber 0.45-0.65, red below
-0.45. Always pair colour with a text label and icon.
+Traffic lights: strong at >= 0.65, mixed at 0.45 to below 0.65, weak below
+0.45. Colour is always paired with a text label and an icon.
 
-## 7. Hand check (Gombe, 2001)
+## 7. Confidence
 
-`python pipeline/metrics.py` reports onset day 149 (29 May 2001). Reading the
-daily rain by eye agrees: the 3-day window 29-31 May totals 20.3 mm, and no
-7-day dry run follows within the next 30 days. The next candidate window
-(30 May - 1 June) also totals over 20 mm, so the choice is stable within one
-day.
+Confidence is a heuristic, not a validation study.
 
-Dukku 2023 is the only no-onset season in the current record. Every 20 mm+
-3-day window that year (6 June, 6-9 August, 24 August) is followed by 7 to 10
-dry days, so the false-start guard rejects all of them. The season is low
-(April-October rain 432 mm) and is counted as a failure for every crop.
+- Synthetic mode: "Not applicable (demo data)".
+- NASA mode without a second rainfall source: "Medium (single source)", because
+  only POWER rainfall is available to cross-check.
+- If IMERG is supplied: correlate POWER and IMERG June-September totals across
+  years. High at r >= 0.7 with at least 15 valid years; Medium at r 0.4-0.7;
+  Low below 0.4 or with fewer than 10 usable years.
 
-## 8. Confidence
+The current real-data build uses cached POWER only, so every location is
+"Medium (single source)". Some neighbouring LGAs share an identical POWER
+series because the model grid is coarser than an LGA: Akko/Billiri/Kaltungo,
+Funakaye/Nafada, and Gombe/Kwami/Yamaltu-Deba. This is stated in the page's
+limits panel.
 
-If IMERG is available, correlate POWER and IMERG seasonal rainfall totals
-across years:
+## 8. Hand check (Gombe, 2001)
 
-- High: r >= 0.7 and at least 15 valid years
-- Medium: r 0.4-0.7
-- Low: r < 0.4, or fewer than 10 valid years
+Running the pipeline on `raw/power_gombe.csv` gives onset day **151**
+(31 May 2001). Checking the raw daily rain by eye:
 
-Without IMERG, every location is "Medium (single source)" and the limits
-panel explains why. This is a heuristic, not a validation study.
+- The 3-day window 29-31 May totals **20.32 mm**.
+- The earlier 6-8 May window totals more than 31 mm but is followed by a
+  7-day dry run, so the false-start guard rejects it.
+- The longest dry run in the following 30 days is 4 days, below the 7-day
+  threshold.
+
+The next window (30 May-1 June) also exceeds 20 mm, so the result is stable
+within one day. This is a spot check, not a validation against gauges or NiMet
+records.

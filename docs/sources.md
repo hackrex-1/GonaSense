@@ -13,16 +13,20 @@ fetcher changes product or date range.
 - Period: 2001-01-01 to 2024-12-31
 - Spatial unit: LGA centroid (one point per LGA)
 - Missing value sentinel: `-999`, replaced with NaN by `fetch_power.py`
-- Access: no login; accessed 2026-11-14
+- Access: no login; downloaded 2026-11-14; final `nasa` build 2026-11-15
+  used the cached CSVs because `power.larc.nasa.gov` was unreachable from the
+  build machine
+- Completeness: 8,766 rows per LGA, 2001-01-01 to 2024-12-31, 0% missing in
+  all four parameters
 - Licence: NASA open data (see the POWER data policy)
 - Notes: modelled reanalysis, not ground observations. Root-zone wetness
   (`GWETROOT`) is a model estimate and is described as such in the limits
   panel.
 - Resolution caveat: the POWER grid is coarser than a Gombe LGA, so several
   neighbouring LGAs receive identical series. Akko, Billiri and Kaltungo
-  match exactly; Gombe and Kwami match; Funakaye and Nafada match. This is
-  documented in the page's limits panel and must not be presented as
-  field-level variation.
+  match exactly; Funakaye and Nafada match; Gombe, Kwami and Yamaltu/Deba
+  match. This is documented in the page's limits panel and must not be
+  presented as field-level variation.
 
 ### geoBoundaries - Nigeria ADM2 (LGA boundaries)
 
@@ -45,21 +49,23 @@ fetcher changes product or date range.
   licence before redistributing derived boundary files.
 - Access date: 2026-11-14.
 
-## Optional (Phase 5)
+## Optional (not available in this build)
 
 ### GPM IMERG - Final Run daily precipitation
 
 - Use: independent rain series to cross-check POWER and set confidence labels.
 - Planned output: `raw/imerg_<id>.csv` with `date, rain_mm`.
 - Access: NASA Earthdata login via `earthaccess`.
-- Status: not fetched yet. Fallback is POWER-only plus an honest limits note.
+- Status: not fetched. The build has no Earthdata credentials and no route to
+  the NASA hosts, so confidence stays "Medium (single source)".
 
 ### SMAP - surface soil moisture (SPL3SMP)
 
 - Use: independent soil-moisture check; record starts in 2015.
 - Planned output: `raw/smap_<id>.csv` with `date, sm`.
 - Limitation: coarse footprint, so it cannot resolve a field.
-- Status: not fetched yet.
+- Status: not fetched. IMERG/SMAP are optional and no Earthdata login is
+  configured.
 
 ### MODIS MOD13Q1 - 16-day NDVI via AppEEARS
 
@@ -67,8 +73,10 @@ fetcher changes product or date range.
 - Planned output: `raw/ndvi_<id>.csv` with `date, ndvi`.
 - Processing: apply quality flags, scale per product documentation, linearly
   interpolate to daily, then average per dekad.
-- Status: not requested yet. If unavailable, `bare_share` is `null` and the
-  page states the limitation.
+- Status: not requested. No reachable AppEEARS or GIBS endpoint was available.
+  If a human supplies `raw/ndvi_<id>.csv`, the pipeline interpolates and
+  computes the flags; otherwise `bare_share` is `null`, the chart says the
+  data is not loaded, and scoring uses the documented 0.30 default.
 
 ## How the LGA centroids were derived
 
@@ -80,6 +88,9 @@ fetcher changes product or date range.
    parts.
 4. Keep features whose centroid falls inside the Gombe state mask.
 5. Drop Guyuk (Adamawa) and round coordinates to 4 decimal places.
+
+All 11 LGAs resolved from the boundary file; the fallback seed was not needed.
+Each `locations.json` entry records this provenance in `coords_status`.
 
 The run used Python's standard library only (`json`, `zipfile`); no manual
 coordinate typing. If a boundary release changes, rerun this and update

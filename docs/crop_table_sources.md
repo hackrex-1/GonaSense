@@ -1,49 +1,81 @@
 # Crop table sources
 
 Every value in `web/data/crops.json` needs a citation before submission.
-Rows marked **verify** are literature-based estimates that a local expert
-must review. Until then the page must show the "unverified estimate" tag.
+**All values are currently provisional.** The UI shows an "unverified
+estimate" tag on every card whose sequence includes one of these crops.
 
-## Crops in the first release
+Status values: `UNVERIFIED` means no citation has been checked yet and
+`crops.json` has `"provisional": true`.
 
-Maize, sorghum, millet, cowpea and groundnut. Soybean is optional.
+## Values (one row per value)
 
-## Values
+| Crop | Field | Value | Source | Status |
+| --- | --- | --- | --- | --- |
+| maize | family | cereal | TODO: cite IITA or FAO | UNVERIFIED |
+| maize | cycle_days | 110 | TODO: cite IITA or FAO | UNVERIFIED |
+| maize | min_rain_mm | 500 | TODO: cite IITA or FAO | UNVERIFIED |
+| maize | dry_tolerance_days | 10 | TODO: cite IITA or FAO | UNVERIFIED |
+| maize | heat_threshold_c | 35 | TODO: cite IITA or FAO | UNVERIFIED |
+| maize | heat_days_limit | 5 | TODO: cite IITA or FAO | UNVERIFIED |
+| maize | flower_frac | 0.45-0.60 | TODO: cite IITA or FAO | UNVERIFIED |
+| maize | water | 0.80 | TODO: cite IITA or FAO | UNVERIFIED |
+| maize | n_fixing | 0 | TODO: cite IITA or FAO | UNVERIFIED |
+| maize | cover | 0.50 | TODO: cite IITA or FAO | UNVERIFIED |
+| maize | market | 0.70 | TODO: cite IITA or FAO | UNVERIFIED |
+| sorghum | family | cereal | TODO: cite IITA or FAO | UNVERIFIED |
+| sorghum | cycle_days | 115 | TODO: cite IITA or FAO | UNVERIFIED |
+| sorghum | min_rain_mm | 450 | TODO: cite IITA or FAO | UNVERIFIED |
+| sorghum | dry_tolerance_days | 14 | TODO: cite IITA or FAO | UNVERIFIED |
+| sorghum | heat_threshold_c | 38 | TODO: cite IITA or FAO | UNVERIFIED |
+| sorghum | heat_days_limit | 5 | TODO: cite IITA or FAO | UNVERIFIED |
+| sorghum | flower_frac | 0.50-0.65 | TODO: cite IITA or FAO | UNVERIFIED |
+| sorghum | water | 0.45 | TODO: cite IITA or FAO | UNVERIFIED |
+| sorghum | n_fixing | 0 | TODO: cite IITA or FAO | UNVERIFIED |
+| sorghum | cover | 0.50 | TODO: cite IITA or FAO | UNVERIFIED |
+| sorghum | market | 0.55 | TODO: cite IITA or FAO | UNVERIFIED |
+| millet | family | cereal | TODO: cite IITA or FAO | UNVERIFIED |
+| millet | cycle_days | 90 | TODO: cite IITA or FAO | UNVERIFIED |
+| millet | min_rain_mm | 350 | TODO: cite IITA or FAO | UNVERIFIED |
+| millet | dry_tolerance_days | 14 | TODO: cite IITA or FAO | UNVERIFIED |
+| millet | heat_threshold_c | 40 | TODO: cite IITA or FAO | UNVERIFIED |
+| millet | heat_days_limit | 5 | TODO: cite IITA or FAO | UNVERIFIED |
+| millet | flower_frac | 0.45-0.60 | TODO: cite IITA or FAO | UNVERIFIED |
+| millet | water | 0.35 | TODO: cite IITA or FAO | UNVERIFIED |
+| millet | n_fixing | 0 | TODO: cite IITA or FAO | UNVERIFIED |
+| millet | cover | 0.45 | TODO: cite IITA or FAO | UNVERIFIED |
+| millet | market | 0.50 | TODO: cite IITA or FAO | UNVERIFIED |
+| cowpea | family | legume | TODO: cite IITA or FAO | UNVERIFIED |
+| cowpea | cycle_days | 85 | TODO: cite IITA or FAO | UNVERIFIED |
+| cowpea | min_rain_mm | 350 | TODO: cite IITA or FAO | UNVERIFIED |
+| cowpea | dry_tolerance_days | 12 | TODO: cite IITA or FAO | UNVERIFIED |
+| cowpea | heat_threshold_c | 35 | TODO: cite IITA or FAO | UNVERIFIED |
+| cowpea | heat_days_limit | 5 | TODO: cite IITA or FAO | UNVERIFIED |
+| cowpea | flower_frac | 0.40-0.60 | TODO: cite IITA or FAO | UNVERIFIED |
+| cowpea | water | 0.40 | TODO: cite IITA or FAO | UNVERIFIED |
+| cowpea | n_fixing | 1 | TODO: cite IITA or FAO | UNVERIFIED |
+| cowpea | cover | 0.80 | TODO: cite IITA or FAO | UNVERIFIED |
+| cowpea | market | 0.60 | TODO: cite IITA or FAO | UNVERIFIED |
+| groundnut | family | legume | TODO: cite IITA or FAO | UNVERIFIED |
+| groundnut | cycle_days | 110 | TODO: cite IITA or FAO | UNVERIFIED |
+| groundnut | min_rain_mm | 450 | TODO: cite IITA or FAO | UNVERIFIED |
+| groundnut | dry_tolerance_days | 12 | TODO: cite IITA or FAO | UNVERIFIED |
+| groundnut | heat_threshold_c | 35 | TODO: cite IITA or FAO | UNVERIFIED |
+| groundnut | heat_days_limit | 5 | TODO: cite IITA or FAO | UNVERIFIED |
+| groundnut | flower_frac | 0.30-0.55 | TODO: cite IITA or FAO | UNVERIFIED |
+| groundnut | water | 0.50 | TODO: cite IITA or FAO | UNVERIFIED |
+| groundnut | n_fixing | 1 | TODO: cite IITA or FAO | UNVERIFIED |
+| groundnut | cover | 0.70 | TODO: cite IITA or FAO | UNVERIFIED |
+| groundnut | market | 0.65 | TODO: cite IITA or FAO | UNVERIFIED |
 
-| Crop | cycle_days | min_rain_mm | dry_tolerance_days | heat_threshold_c | heat_days_limit | flower_frac | Status |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Maize | 100 | 450 | 10 | 35 | 4 | 0.40-0.60 | verify |
-| Sorghum | 120 | 300 | 15 | 38 | 6 | 0.45-0.65 | verify |
-| Millet | 90 | 250 | 18 | 40 | 6 | 0.40-0.60 | verify |
-| Cowpea | 80 | 250 | 14 | 36 | 5 | 0.35-0.60 | verify |
-| Groundnut | 110 | 350 | 12 | 35 | 4 | 0.40-0.65 | verify |
+## How to clear a row
 
-## Scores (0 to 1)
+1. Find the value in an IITA, FAO or peer-reviewed source and write the exact
+   citation (author, year, title, page or table).
+2. Put the citation in the Source column and change Status to `VERIFIED`.
+3. Change the matching `"provisional": true` to `false` in
+   `web/data/crops.json` only when every value for that crop is verified.
+4. Re-run `python -m pipeline.run_all --mode nasa` and
+   `python -m pipeline.validate` so the page and contracts stay consistent.
 
-| Crop | family | water demand | n_fixing | cover | market |
-| --- | --- | --- | --- | --- | --- |
-| Maize | cereal | 0.75 | 0.05 | 0.45 | 0.80 |
-| Sorghum | cereal | 0.35 | 0.05 | 0.55 | 0.60 |
-| Millet | cereal | 0.20 | 0.05 | 0.40 | 0.45 |
-| Cowpea | legume | 0.30 | 0.85 | 0.60 | 0.70 |
-| Groundnut | legume | 0.40 | 0.75 | 0.65 | 0.75 |
-
-## Citation checklist
-
-Fill one line per crop. Suggested sources, to be checked against the actual
-documents rather than quoted from memory:
-
-1. IITA crop guides (maize, cowpea, soybean) - cycle length, spacing, pests.
-2. FAO crop water information (maize, sorghum, millet, groundnut, cowpea) -
-   seasonal water requirement and drought sensitivity.
-3. FAO ECOCROP - temperature and rainfall envelopes.
-4. NiMet agro-meteorological bulletins - local season timing context.
-5. One conversation with a Gombe extension officer or farmer - variety
-   maturity, market demand, local practice. Record permission to quote.
-
-## Open questions for the research lead
-
-- Which maize and cowpea varieties are actually grown around each LGA?
-- Is groundnut rosette or aflatoxin the bigger constraint locally?
-- What price seasonality should the market score reflect?
-- Should `heat_days_limit` differ between early and late maturing varieties?
+Do not quote a source from memory. If the document is not at hand, leave the
+row as `UNVERIFIED`.

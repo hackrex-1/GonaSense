@@ -1,44 +1,44 @@
-# Gombe Rotation Advisor
+# GonaSense
 
-A no-server decision aid for rain-fed farmers in Gombe State, Nigeria. Pick
-your local government area and your current rotation, move the priority
-sliders, and see climate-tested alternatives re-rank live. Every strategy
-card answers the same five questions: why it was suggested, what the evidence
-is, what it could add, what information is missing, and what needs local
-review.
+A static decision aid for rain-fed farmers in Gombe State, Nigeria. Pick your
+local government area and current rotation, move the priority sliders, and see
+climate-tested alternatives re-rank live. Every strategy card answers the same
+five questions: why it was suggested, what the evidence is, what it could add,
+what information is missing, and what needs local review.
 
 Built for the **NASA Space Apps Challenge 2026 (Field Shift)**.
 
-> **Status: Phase 2 complete.** The repository, frozen data contracts, POWER
-> fetcher, metrics core (onset, crop windows, 12 scenarios) and validator all
-> work. `web/data/metrics.json` now contains real computed counts for all 11
-> LGAs. NDVI/bare-field data is still pending (Phase 5), so `bare_share` is
-> `null` and the page says so. Charts, map, cards and sliders are next.
-
-## Problem
-
-Smallholder farmers in Gombe start the season on a guess. The rains arrive
-late or stall after a false start, soils are losing fertility under
-continuous cereal cropping, and the advice available often assumes a season
-that no longer looks like the last 24. A rotation that ignores dry spells,
-heat during flowering, or soil nitrogen can fail even in a "normal" year.
+> **Status: build complete.** The site runs on real NASA POWER data for 11
+> Gombe LGAs, 2001-2024. The demo banner is hidden in `nasa` mode. NDVI is the
+> one missing input: no NDVI source was reachable, so the chart says so and
+> scoring uses the documented 30% default. Crop thresholds remain provisional
+> until a human verifies them. See `HUMAN_TODO.md`.
 
 ## What it does
 
-- Compares a farmer's existing rotation with three or more alternatives.
+- Compares the farmer's existing rotation with three alternatives.
 - Scores each rotation on climate reliability, water demand, soil building,
   erosion cover, pest-cycle break and market income, weighted by the user's
-  own priorities.
-- Shows the evidence as counts of seasons, not just a score: "in 12 of 24
+  priorities.
+- Shows evidence as counts of seasons, not a single probability: "in 19 of 24
   seasons, rainfall, dry spells and heat all stayed within maize limits".
-- Tests sensitivity to 20% less rain or 2 °C more heat, clearly labelled as a
-  test and not a forecast.
+- Tests sensitivity to 20% less rain or 2 °C more heat, labelled as a test and
+  not a forecast.
 - States its limits: satellite estimates, one point per LGA, no ground
-  stations, crop thresholds still awaiting local review.
+  stations, provisional crop thresholds.
 
 ## Live site
 
-Pending. The deployed site will be the contents of `web/` on GitHub Pages.
+Pending. The deployed site is the contents of `web/` on GitHub Pages. Add the
+URL here after enabling Pages (see `HUMAN_TODO.md`).
+
+## Screenshots
+
+Pending. Placeholder for:
+
+- desktop three-column view
+- 360 px mobile view
+- a strategy card close-up
 
 ## Repository layout
 
@@ -47,43 +47,53 @@ gombe-rotation-advisor/
   pipeline/     offline Python: fetch, metrics, export, validate
   raw/          cached downloads, git-ignored
   web/          the deployed site (HTML, CSS, ES modules, JSON)
-  docs/         sources, method, crop table citations
+  docs/         requirements trace, method, sources, crop citations, QA
   tests/        pytest for the pipeline, node tests for scoring
-  README.md
+  AGENTS.md     standing brief for future agent sessions
+  DECISIONS.md  one-line decisions and reasons
+  HUMAN_TODO.md what still needs a person
 ```
 
 ## Quick start
 
 ```powershell
-# 1. Python dependencies (pandas, requests, pytest)
+# 1. Python dependencies
 python -m venv .venv --system-site-packages
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 
-# 2. Download POWER data for one LGA (all LGAs if you omit --locations)
-python pipeline/fetch_power.py --locations gombe
+# 2. Real-data build from cached POWER CSVs (no network needed)
+.\.venv\Scripts\python.exe -m pipeline.run_all --mode nasa
 
-# 3. Compute metrics and export the contracts (about 2 minutes for 11 LGAs)
-python pipeline/export_json.py
+# 3. Or a labelled synthetic demo
+.\.venv\Scripts\python.exe -m pipeline.run_all --mode synthetic --refresh
 
-# 4. Check the exported JSON contracts
-python pipeline/validate.py
-
-# 5. Tests: pipeline (pytest) and scoring (node)
+# 4. Tests
 .\.venv\Scripts\python.exe -m pytest -q
-npm test
+node --test "tests/*.test.mjs"
 
-# 6. Open the site (a local server is needed for ES modules)
+# 5. Serve the site (ES modules need HTTP, not file://)
 python -m http.server 8080 --directory web
-# then visit http://localhost:8080
+# visit http://localhost:8080
 ```
 
-`python pipeline/fetch_power.py` without arguments downloads all 11 LGAs,
-pausing between calls, and caches each response in `raw/power_<id>.csv`.
-Later runs reuse the cache; pass `--force` to refresh.
+Both `run_all` modes write all five JSON files into `web/data/` and then run
+the contract validator. `--refresh` re-downloads POWER when network is
+available; otherwise the cached `raw/power_<id>.csv` files are reused.
 
-`export_json.py` reads the cached CSVs, computes onset and crop counts for the
-base case and all 12 scenarios, writes `web/data/metrics.json` and
-`locations.json`, then runs the contract validator as its last step.
+To refresh POWER explicitly:
+
+```powershell
+.\.venv\Scripts\python.exe -m pipeline.fetch_power
+```
+
+## Tests
+
+- `pytest`: 27 passing. Covers onset, false starts, missing data, crop checks,
+  scenario keys, harmonization, bare-share window and contract validation.
+- `node --test "tests/*.test.mjs"`: 8 passing. Covers the scoring formula,
+  scenario-key parity with Python, NDVI fallback, ranking and traffic lights.
+- `docs/QA.md` records the manual UI checks: 360 px layout, control updates,
+  no post-load network, accessibility audit and graceful degradation.
 
 ## Data sources
 
@@ -100,33 +110,53 @@ Details, access dates and licences: [`docs/sources.md`](docs/sources.md).
 
 ## Method
 
-Onset, crop windows, counts and the scoring formula are written up in
+Onset, crop windows, counts and the scoring formula are in
 [`docs/method.md`](docs/method.md). In short:
 
-- Onset is the first 3-day total of at least 20 mm that is not followed by a
-  7-day dry spell, searched from 1 April to 31 October.
+- Onset is the end of the first 3-day total of at least 20 mm that is not
+  followed by a 7-day dry spell, searched from 1 April to 31 October.
 - A crop passes a year when season rain, the longest dry spell and heat days
   during flowering all stay inside its limits.
-- Reliability is the share of **all** years in which all three pass, with
-  years that never had an onset counted as failures.
+- Reliability is the share of **all** years in which all three pass, with years
+  that never had an onset counted as failures.
 - The web page scores rotations with weights from the priority sliders.
 
 ## Limitations and uncertainty
 
 - NASA POWER is a modelled product, not a weather station. Every location is
-  labelled "Medium (single source)" until IMERG is added.
+  labelled "Medium (single source)" until a second rainfall source is added.
 - POWER's grid is coarser than an LGA, so some neighbouring LGAs share an
-  identical modelled series (for example Akko, Billiri and Kaltungo). Treat
-  within-LGA variation as unresolved; this is stated in the limits panel.
+  identical modelled series: Akko/Billiri/Kaltungo, Funakaye/Nafada, and
+  Gombe/Kwami/Yamaltu-Deba. This is stated in the limits panel.
 - One centroid represents a whole LGA; soil, slope and variety vary within it.
-- NDVI is not wired in yet, so the bare-field share is `null` and scoring
-  uses the neutral 0.3 default with a visible note.
-- Crop thresholds marked `"verify"` are literature-based estimates awaiting
-  local expert review. The page must show that tag.
-- Scenario pass rates can move slightly in either direction when scaled rain
-  shifts the detected onset. The ranges are a sensitivity test, not a forecast.
+- NDVI is not available in this build, so `bare_share` is `null` and scoring
+  uses the neutral 0.30 default with a visible note. The NDVI chart is hidden,
+  not fabricated.
+- Crop values are provisional (`"provisional": true`) and every card that uses
+  them shows an "unverified estimate" tag.
+- Scenario pass rates can move when scaled rain shifts the detected onset. They
+  are sensitivity tests, not forecasts.
+- No ground stations were used. Rain gauges, soil tests and NiMet records would
+  let us validate onset dates and crop limits locally.
 - This is a decision aid. Farmers' experience and extension officers' advice
   come first.
+
+## Where local expertise is required
+
+- Confirming crop cycle lengths, water needs, dry-spell tolerance and heat
+  thresholds for Gombe varieties.
+- Confirming the onset definition used by local extension services.
+- Reviewing the benefits, gaps and risks on strategies B, C and D.
+- Checking onset dates against NiMet bulletins and farmer recollection.
+- Advising on security and access conditions in parts of the north-east.
+
+## Credits
+
+- NASA POWER (NASA Langley Research Center), accessed 2026-11-14.
+- geoBoundaries gbOpen NGA ADM2, GRID3 (2022), CC BY 4.0.
+- GADM v4.1, used for state masking only.
+- Chart.js 4.4.7 and Leaflet 1.9.4, vendored.
+- OpenStreetMap contributors for map tiles.
 
 ## Team
 
