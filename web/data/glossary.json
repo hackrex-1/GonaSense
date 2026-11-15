@@ -1,10 +1,58 @@
 [
-  { "term": "NDVI", "plain": "A satellite measure of how green and dense the vegetation is. Low values suggest bare soil." },
-  { "term": "Dry spell", "plain": "A run of days with almost no rain. Long dry spells during flowering can cut yield." },
-  { "term": "Soil moisture", "plain": "How much water is held in the root zone. NASA POWER estimates this from satellite and weather models." },
-  { "term": "Rainfall onset", "plain": "The first reliable start of the rainy season: enough rain to wet the soil, with no long dry spell straight after." },
-  { "term": "Dekad", "plain": "A ten-day period: days 1 to 10, 11 to 20, or 21 to the end of the month. There are 36 in a year." },
-  { "term": "Reliability", "plain": "The share of seasons in which rainfall, dry spells and heat all stayed within a crop's limits." },
-  { "term": "Sensitivity test", "plain": "A what-if run with less rain or more heat. It shows how rankings react; it is not a forecast." },
-  { "term": "Confidence label", "plain": "How much we trust a location's numbers. A single data source is labelled Medium until a second satellite source agrees." }
+  {
+    "term": "Rainfall onset",
+    "plain": "The first reliable start of the rainy season. We look for enough rain to wet the soil, with no long dry spell straight after."
+  },
+  {
+    "term": "Dry spell",
+    "plain": "A run of days with almost no rain. A long dry spell while a crop is flowering can reduce the harvest."
+  },
+  {
+    "term": "Dekad (10-day period)",
+    "plain": "A ten-day period: days 1 to 10, 11 to 20, or 21 to the end of the month. There are 36 in a year."
+  },
+  {
+    "term": "NDVI",
+    "plain": "A satellite measure of how green and healthy plants are. Low values suggest bare soil or dry plants."
+  },
+  {
+    "term": "Soil moisture",
+    "plain": "How much water is held in the soil around the roots. Satellite estimates are coarse and cannot see one field."
+  },
+  {
+    "term": "Bare field",
+    "plain": "Ground with little or no plant cover. Bare soil is exposed to sun, wind and rain, so it can lose water and wash away."
+  },
+  {
+    "term": "Reliability",
+    "plain": "How often a crop's rainfall, dry-spell and heat limits were all met in the past seasons we counted."
+  },
+  {
+    "term": "Crop rotation",
+    "plain": "Changing the crop grown on a field from one season to the next, instead of growing the same crop every year."
+  },
+  {
+    "term": "Nitrogen fixing",
+    "plain": "Some plants, such as legumes, take nitrogen from the air and add it to the soil. The next crop can use it."
+  },
+  {
+    "term": "Legume",
+    "plain": "A plant that carries its seeds in pods, such as cowpea or groundnut. Most legumes add nitrogen to the soil."
+  },
+  {
+    "term": "Cereal",
+    "plain": "A grass grown for grain, such as maize, sorghum or millet. Cereals usually need more soil nitrogen."
+  },
+  {
+    "term": "Sensitivity test",
+    "plain": "A what-if run with less rain or more heat. It shows how the ranking reacts. It is not a forecast."
+  },
+  {
+    "term": "Confidence label",
+    "plain": "How much trust to place in a location's numbers. It is higher when two independent satellite rainfall records agree."
+  },
+  {
+    "term": "Extension officer",
+    "plain": "A local agricultural adviser who knows your area, your soil and the varieties that work nearby."
+  }
 ]
