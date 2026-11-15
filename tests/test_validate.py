@@ -82,3 +82,12 @@ def test_unknown_strategy_crop_fails(dataset):
 
     errors = validate.validate_all(dataset)
     assert any("unknown crop" in error for error in errors)
+
+
+def test_invalid_crop_heat_metric_fails(dataset):
+    crops = read(dataset / "crops.json")
+    crops["maize"]["heat_metric"] = "average"
+    write(dataset / "crops.json", crops)
+
+    errors = validate.validate_all(dataset)
+    assert any("heat_metric" in error for error in errors)

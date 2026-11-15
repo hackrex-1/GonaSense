@@ -22,6 +22,10 @@ Format: decision - reason.
 - Mark every crop value provisional and every source `TODO: cite IITA or FAO` - no citation was available to verify against.
 - Use `node --test "tests/*.test.mjs"` on Windows - bare `tests/` triggers MODULE_NOT_FOUND with this Node setup.
 - Add `?v=` cache-busters only during QA, not in the shipped HTML - the static site relies on normal HTTP revalidation; the deployed first load has no stale cache.
+- Check dry spells only inside the flowering window - drought stress at flowering is the risk the crop limits are meant to screen; the earlier whole-season run overstated failures.
+- Let each crop choose `heat_metric` (`tmax` or `tmin`) - cowpea is sensitive to warm nights, so it screens Tmin while the cereals screen Tmax.
+- Track verification per field in `field_status` instead of one crop-wide flag - the UI can then tag only the criteria and evidence lines that depend on an unconfirmed value.
+- Label non-confirmed inputs "estimate" - the field-status map carries the evidence level, while the short label keeps the dashboard readable and the review caveat explains what remains provisional.
 
 ## Superseded decisions
 

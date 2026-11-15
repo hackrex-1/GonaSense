@@ -34,6 +34,7 @@ def crop():
         "cycle_days": 100,
         "min_rain_mm": 450,
         "dry_tolerance_days": 10,
+        "heat_metric": "tmax",
         "heat_threshold_c": 35,
         "heat_days_limit": 4,
         "flower_frac": [0.4, 0.6],

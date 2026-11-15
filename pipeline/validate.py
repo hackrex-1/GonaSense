@@ -21,9 +21,16 @@ REQUIRED_FILES = ("locations.json", "crops.json", "strategies.json",
                   "metrics.json", "glossary.json")
 COUNT_KEYS = ("rain_ok", "dry_ok", "heat_ok", "all_ok")
 CROP_KEYS = ("name", "family", "cycle_days", "min_rain_mm", "dry_tolerance_days",
-             "heat_threshold_c", "heat_days_limit", "flower_frac", "water",
-             "n_fixing", "cover", "market", "provisional", "source_status")
+             "heat_metric", "heat_threshold_c", "heat_days_limit", "flower_frac",
+             "water", "n_fixing", "cover", "market", "field_status",
+             "provisional", "source_status")
 SCORE_KEYS = ("water", "n_fixing", "cover", "market")
+FIELD_STATUSES = {"confirmed", "derived", "estimate"}
+FIELD_STATUS_KEYS = {
+    "cycle_days", "min_rain_mm", "dry_tolerance_days", "heat_metric",
+    "heat_threshold_c", "heat_days_limit", "flower_frac", "water",
+    "n_fixing", "cover", "market",
+}
 
 
 def _reject_constant(value: str):
@@ -123,6 +130,30 @@ def validate_all(data_dir: Path | None = None) -> list[str]:
             errors.append(f"crop {crop_id}: provisional must be true or false")
         if crop.get("family") not in ("cereal", "legume"):
             errors.append(f"crop {crop_id}: family must be cereal or legume")
+        if crop.get("heat_metric") not in ("tmax", "tmin"):
+            errors.append(f"crop {crop_id}.heat_metric: must be tmax or tmin")
+        field_status = crop.get("field_status")
+        if not isinstance(field_status, dict):
+            errors.append(f"crop {crop_id}.field_status: must be an object")
+        else:
+            missing_statuses = FIELD_STATUS_KEYS - field_status.keys()
+            unknown_statuses = field_status.keys() - FIELD_STATUS_KEYS
+            if missing_statuses:
+                errors.append(
+                    f"crop {crop_id}.field_status: missing statuses for "
+                    f"{', '.join(sorted(missing_statuses))}"
+                )
+            if unknown_statuses:
+                errors.append(
+                    f"crop {crop_id}.field_status: unknown fields "
+                    f"{', '.join(sorted(unknown_statuses))}"
+                )
+            for field, status in field_status.items():
+                if status not in FIELD_STATUSES:
+                    errors.append(
+                        f"crop {crop_id}.field_status.{field}: "
+                        "must be confirmed, derived or estimate"
+                    )
         for key in SCORE_KEYS:
             value = crop.get(key)
             if not isinstance(value, (int, float)) or not 0 <= value <= 1:

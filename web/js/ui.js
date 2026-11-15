@@ -6,6 +6,16 @@ import { trafficLight } from "./scoring.js";
 import { criterionLabel, evidenceLine, noOnsetLine, sequenceText, whySentence } from "./text.js";
 
 const CRITERIA = ["climate", "water", "soil", "erosion", "pests", "income"];
+const CRITERION_FIELDS = {
+  climate: ["cycle_days", "min_rain_mm", "dry_tolerance_days", "heat_metric",
+    "heat_threshold_c", "heat_days_limit", "flower_frac"],
+  water: ["water"],
+  soil: ["n_fixing"],
+  erosion: ["cover"],
+  pests: [],
+  income: ["market"],
+};
+const EVIDENCE_FIELDS = CRITERION_FIELDS.climate;
 
 export function el(tag, attrs = {}, text) {
   const node = document.createElement(tag);
@@ -270,17 +280,22 @@ function renderCard(entry, rankNumber, data, location, counts, noOnsetCount) {
 
   if (provisional) {
     const tagRow = el("p", { class: "tag-row" });
-    tagRow.append(el("span", { class: "tag" }, strings.unverifiedTag));
+    tagRow.append(el("span", { class: "tag" }, strings.estimateTag));
     card.append(tagRow);
   }
 
-  card.append(renderCriteria(parts));
+  card.append(renderCriteria(parts, strategy.sequence, data.crops));
 
   card.append(section(strings.whyTitle, el("p", {}, whySentence(parts))));
 
   const evidence = el("ul", { class: "plain-list" });
   for (const cropId of strategy.sequence) {
-    evidence.append(el("li", {}, evidenceLine(cropId, counts[cropId], data.crops)));
+    const item = el("li");
+    item.append(document.createTextNode(evidenceLine(cropId, counts[cropId], data.crops)));
+    if (hasEstimatedField([cropId], data.crops, EVIDENCE_FIELDS)) {
+      item.append(el("span", { class: "tag" }, strings.estimateTag));
+    }
+    evidence.append(item);
   }
   const evidenceSection = section(strings.evidenceTitle, evidence);
   if (noOnsetCount > 0) {
@@ -319,13 +334,18 @@ function bulletList(items) {
   return list;
 }
 
-function renderCriteria(parts) {
+function renderCriteria(parts, sequence, crops) {
   const list = el("ul", { class: "criteria", "aria-label": strings.criteriaAriaLabel });
   for (const key of CRITERIA) {
     const value = parts[key] ?? 0;
     const percent = Math.round(value * 100);
     const row = el("li");
-    row.append(el("span", { class: "crit-label" }, criterionLabel(key)));
+    const label = el("span", { class: "crit-label" });
+    label.append(el("span", {}, criterionLabel(key)));
+    if (hasEstimatedField(sequence, crops, CRITERION_FIELDS[key])) {
+      label.append(el("span", { class: "tag" }, strings.estimateTag));
+    }
+    row.append(label);
     const bar = el("span", {
       class: "bar",
       role: "img",
@@ -338,6 +358,15 @@ function renderCriteria(parts) {
     list.append(row);
   }
   return list;
+}
+
+function hasEstimatedField(sequence, crops, fields) {
+  return fields.length > 0 && sequence.some((cropId) => {
+    const crop = crops[cropId];
+    if (!crop) return false;
+    if (!crop.field_status) return crop.provisional === true;
+    return fields.some((field) => crop.field_status[field] !== "confirmed");
+  });
 }
 
 export function renderScenarioError(key) {
@@ -396,7 +425,7 @@ function glossaryLinks(terms) {
       "aria-label": fill(strings.glossaryLink, { term }),
     }, term);
     paragraph.append(link);
-    if (index < terms.length - 1) paragraph.append(el("span", { "aria-hidden": "true" }, " · "));
+    if (index < terms.length - 1) paragraph.append(el("span", { "aria-hidden": "true" }, " Â· "));
   });
   return paragraph;
 }

@@ -8,11 +8,16 @@ Each item says where the work goes.
 - [ ] **Verify every crop value** in `web/data/crops.json` against IITA and
       FAO sources, fill `docs/crop_table_sources.md`, then set
       `"provisional": false` per crop. The page currently tags every score
-      containing these crops as an unverified estimate.
+      containing these crops as an estimate.
 - [ ] **Confirm and cite the onset definition**, the 7-day dry-spell guard and
       the heat thresholds in `pipeline/config.py`. The current values are
       provisional: 20 mm over 3 days, 7 dry days within 30, search 1 April to
       31 October.
+- [ ] **Calibrate the cowpea night-heat threshold** (Tmin > 25 C during
+      flowering). In the current 2001-2024 NASA POWER build, all 24 seasons at
+      all 11 LGAs passed this check, so it does not distinguish seasons yet.
+      Review the threshold with a local agronomist before treating it as useful
+      risk evidence.
 - [ ] **Replace the remaining synthetic strategy copy** in
       `web/data/strategies.json` with reviewed gaps and risks, and confirm
       strategies B, C and D with IITA or a local agronomist.

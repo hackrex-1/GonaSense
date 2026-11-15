@@ -45,7 +45,7 @@ Create `docs/REQUIREMENTS_TRACE.md` as a table mapping each row to the file and 
 
 1. **Never invent data or citations.** Any crop threshold, score, coordinate or source you cannot derive from a file or API response MUST be marked provisional (see 2.2). Never write a fake reference.
 2. **Synthetic data must always be labelled.** If the dashboard is showing synthetic data, a banner reading "DEMO DATA: synthetic, not real NASA observations" MUST be visible at the top of every view. The banner is driven by `data_mode` in `metrics.json` (`"synthetic"` or `"nasa"`).
-3. **Provisional values must be visibly tagged.** Any value with `"provisional": true` in `crops.json` renders with a small "unverified estimate" tag wherever it influences a displayed number.
+3. **Provisional values must be visibly tagged.** Any value with `"provisional": true` in `crops.json` renders with a small "estimate" tag wherever it influences a displayed number.
 4. **Show uncertainty as counts, never as a single precise prediction.** Write "12 of 24 seasons", not "50% chance".
 5. **Scenario sliders are sensitivity tests, not forecasts.** Label them exactly: "Sensitivity test, not a forecast".
 6. **Support, not replace.** Every strategy card carries this footer verbatim: "This is a decision aid. Your experience and your extension officer's advice come first."
@@ -336,7 +336,7 @@ Also provide a third alternative `D` "Millet, then groundnut" (`["millet","groun
 
 ### 10.1 `crops.json` seed (ALL PROVISIONAL)
 
-Use these values so the product runs. Every crop gets `"provisional": true` and `"source_status": "PROVISIONAL: not yet verified against IITA or FAO"`. The human will verify and replace them. Do not present them as facts anywhere; the UI shows the "unverified estimate" tag (rule 2.3).
+Use these values so the product runs. Every crop gets `"provisional": true` and a `source_status` that identifies pending source and expert review. Do not present provisional values as established facts; the UI shows the "estimate" tag (rule 2.3).
 
 Scores `water, n_fixing, cover, market` are on a 0 to 1 scale.
 
@@ -348,7 +348,7 @@ Scores `water, n_fixing, cover, market` are on a 0 to 1 scale.
 | cowpea | legume | 85 | 350 | 12 | 35 | 5 | [0.40, 0.60] | 0.40 | 1 | 0.80 | 0.60 |
 | groundnut | legume | 110 | 450 | 12 | 35 | 5 | [0.30, 0.55] | 0.50 | 1 | 0.70 | 0.65 |
 
-Also create `docs/crop_table_sources.md` with one row per value and the columns: crop, field, value, source, status. Set every status to `UNVERIFIED` and every source to `TODO: cite IITA or FAO`. The human fills these in.
+Also create `docs/crop_table_sources.md` with one row per value and the columns: crop, field, value, source, status. Use `CONFIRMED`, `DERIVED` or `ESTIMATE` statuses, and keep fields provisional until the cited evidence has been reviewed.
 
 ### 10.2 `glossary.json`
 

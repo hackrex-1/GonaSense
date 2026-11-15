@@ -414,7 +414,7 @@ input[type="range"] { width: 100%; accent-color: var(--leaf); cursor: pointer; }
 
 .criteria { list-style: none; margin: 0.5rem 0 0.4rem; padding: 0; display: grid; gap: 0.3rem; }
 .criteria li { display: grid; grid-template-columns: 8.3rem minmax(0, 1fr); gap: 0.5rem; align-items: center; }
-.crit-label { font-size: 0.86rem; color: var(--muted); }
+.crit-label { min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem; font-size: 0.86rem; color: var(--muted); }
 
 .tag-row { margin: 0.35rem 0 0; }
 .tag {

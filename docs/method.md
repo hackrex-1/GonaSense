@@ -40,15 +40,22 @@ are never silently dropped; dropping them would overstate reliability.
 
 Starting at onset, the crop window covers `cycle_days` days, inclusive. The
 flowering window is the slice from `round(flower_frac[0] * cycle_days)` to
-`round(flower_frac[1] * cycle_days)` days after onset, inclusive.
+`round(flower_frac[1] * cycle_days)` days after onset, inclusive. Dry spells
+are checked within this flowering window, not across the whole crop cycle.
 
 A season passes for a crop only when all three checks pass:
 
 | Check | Pass rule |
 | --- | --- |
 | Rain | season total >= `min_rain_mm` |
-| Dry spell | longest run of days below 1 mm <= `dry_tolerance_days` |
-| Heat | days with Tmax > `heat_threshold_c` during flowering <= `heat_days_limit` |
+| Dry spell | longest run of flowering-window days below 1 mm <= `dry_tolerance_days` |
+| Heat | days above `heat_threshold_c` during flowering <= `heat_days_limit`, using Tmax or Tmin as selected by `heat_metric` |
+
+`dry_tolerance_days` and `heat_days_limit` are provisional risk-screening
+thresholds, not established biological limits. `min_rain_mm` represents a
+crop water requirement and is not a guaranteed crop-failure point. See
+`docs/crop_table_sources.md` and the detailed research notes in
+`../crop_table_sources.md`.
 
 The pipeline reports `rain_ok`, `dry_ok`, `heat_ok`, `all_ok` and `n_total`.
 Reliability is not reported as a single probability; the page shows counts such

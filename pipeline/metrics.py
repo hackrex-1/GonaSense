@@ -106,12 +106,17 @@ def crop_year(df: pd.DataFrame, onset: pd.Timestamp | None, crop: dict) -> dict:
     flower_start = onset + pd.Timedelta(days=round(crop["flower_frac"][0] * cycle))
     flower_end = onset + pd.Timedelta(days=round(crop["flower_frac"][1] * cycle))
     flowering = df.loc[flower_start:flower_end]
-    if flowering.empty or flowering[TMAX].isna().mean() > config.MAX_MISSING_FRAC:
+    heat_metric = crop.get("heat_metric", "tmax")
+    heat_column = TMIN if heat_metric == "tmin" else TMAX
+    if (flowering.empty
+            or flowering[heat_column].isna().mean() > config.MAX_MISSING_FRAC
+            or flowering[RAIN].isna().mean() > config.MAX_MISSING_FRAC):
         return empty
 
     rain_mm = float(rain.sum())
-    dry_days = longest_run((rain < config.DRY_DAY_MM).fillna(False))
-    heat_days = int((flowering[TMAX] > crop["heat_threshold_c"]).sum())
+    flowering_rain = flowering[RAIN]
+    dry_days = longest_run((flowering_rain < config.DRY_DAY_MM).fillna(False))
+    heat_days = int((flowering[heat_column] > crop["heat_threshold_c"]).sum())
 
     rain_ok = rain_mm >= crop["min_rain_mm"]
     dry_ok = dry_days <= crop["dry_tolerance_days"]

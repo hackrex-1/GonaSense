@@ -41,9 +41,10 @@ logo is a wordmark plus a hoe with signal arcs.
    synthetic data, a banner reading
    "DEMO DATA: synthetic, not real NASA observations" MUST be visible at the
    top of every view. The banner is driven by `data_mode` in `metrics.json`.
-3. **Provisional values must be visibly tagged.** Any value with
-   `"provisional": true` in `crops.json` renders with an "unverified estimate"
-   tag wherever it influences a displayed number.
+3. **Provisional values must be visibly tagged.** Any crop field whose
+   `field_status` in `crops.json` is `estimate` or `derived`, and any crop with
+   `"provisional": true`, must render with an "estimate" tag
+   wherever it influences a displayed number.
 4. **Show uncertainty as counts, never as a single precise prediction.** Write
    "12 of 24 seasons", not "50% chance".
 5. **Scenario sliders are sensitivity tests, not forecasts.** Label them

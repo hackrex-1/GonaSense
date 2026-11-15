@@ -41,6 +41,29 @@ def test_crop_year_fails_on_a_known_dry_spell(make_daily, crop):
     assert result["all_ok"] is False
 
 
+def test_crop_year_checks_dry_spells_during_flowering_only(make_daily, crop):
+    daily = season_rain(make_daily(), "2001-05-01", "2001-08-20")
+    daily.loc["2001-05-01":"2001-05-20", "PRECTOTCORR"] = 0.0
+
+    result = metrics.crop_year(daily, pd.Timestamp("2001-05-01"), crop)
+
+    assert result["valid"] is True
+    assert result["dry_ok"] is True
+    assert result["dry_days"] == 0
+
+
+def test_crop_year_uses_selected_heat_metric(make_daily, crop):
+    crop["heat_metric"] = "tmin"
+    daily = season_rain(make_daily(tmax=40.0, tmin=22.0),
+                        "2001-05-01", "2001-08-20")
+
+    result = metrics.crop_year(daily, pd.Timestamp("2001-05-01"), crop)
+
+    assert result["valid"] is True
+    assert result["heat_days"] == 0
+    assert result["heat_ok"] is True
+
+
 def test_crop_year_fails_on_known_heat_days(make_daily, crop):
     daily = season_rain(make_daily(tmax=40.0), "2001-05-01", "2001-08-20")
     result = metrics.crop_year(daily, pd.Timestamp("2001-05-01"), crop)

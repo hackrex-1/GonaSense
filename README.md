@@ -20,8 +20,9 @@ Built for the **NASA Space Apps Challenge 2026 (Field Shift)**.
 - Scores each rotation on climate reliability, water demand, soil building,
   erosion cover, pest-cycle break and market income, weighted by the user's
   priorities.
-- Shows evidence as counts of seasons, not a single probability: "in 19 of 24
-  seasons, rainfall, dry spells and heat all stayed within maize limits".
+- Shows evidence as counts of seasons, not a single probability: "in 21 of 24
+  seasons, rainfall, dry spells and heat stayed within maize screening
+  thresholds".
 - Tests sensitivity to 20% less rain or 2 °C more heat, labelled as a test and
   not a forecast.
 - States its limits: satellite estimates, one point per LGA, no ground
@@ -88,7 +89,7 @@ To refresh POWER explicitly:
 
 ## Tests
 
-- `pytest`: 27 passing. Covers onset, false starts, missing data, crop checks,
+- `pytest`: 30 passing. Covers onset, false starts, missing data, crop checks,
   scenario keys, harmonization, bare-share window and contract validation.
 - `node --test "tests/*.test.mjs"`: 8 passing. Covers the scoring formula,
   scenario-key parity with Python, NDVI fallback, ranking and traffic lights.
@@ -115,8 +116,9 @@ Onset, crop windows, counts and the scoring formula are in
 
 - Onset is the end of the first 3-day total of at least 20 mm that is not
   followed by a 7-day dry spell, searched from 1 April to 31 October.
-- A crop passes a year when season rain, the longest dry spell and heat days
-  during flowering all stay inside its limits.
+- A crop passes a year when season rain, the longest dry spell during
+  flowering, and heat days during flowering all stay inside its screening
+  thresholds.
 - Reliability is the share of **all** years in which all three pass, with years
   that never had an onset counted as failures.
 - The web page scores rotations with weights from the priority sliders.
@@ -132,8 +134,9 @@ Onset, crop windows, counts and the scoring formula are in
 - NDVI is not available in this build, so `bare_share` is `null` and scoring
   uses the neutral 0.30 default with a visible note. The NDVI chart is hidden,
   not fabricated.
-- Crop values are provisional (`"provisional": true`) and every card that uses
-  them shows an "unverified estimate" tag.
+- Crop values are provisional (`"provisional": true`). Each field carries a
+  `field_status` of confirmed, derived or estimate, and the cards tag every
+  scored criterion and evidence line that depends on a non-confirmed field.
 - Scenario pass rates can move when scaled rain shifts the detected onset. They
   are sensitivity tests, not forecasts.
 - No ground stations were used. Rain gauges, soil tests and NiMet records would
